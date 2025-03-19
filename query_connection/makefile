@@ -1,21 +1,14 @@
 CC = gcc
-CFLAGS = -Wall -Wextra 
-OBJ = peer_client.o send_action.o recv_action.o
+CFLAGS = -Wall -Wextra -Werror
+SRC = peer_client.c send_action.c recv_action.c
 TARGET = peer_client
 
 all: $(TARGET)
 
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJ)
-
-peer_client.o: peer_client.c action_connection.h
-	$(CC) $(CFLAGS) -c peer_client.c
-
-send_action.o: send_action.c action_connection.h
-	$(CC) $(CFLAGS) -c send_action.c
-
-recv_action.o: recv_action.c action_connection.h
-	$(CC) $(CFLAGS) -c recv_action.c
+$(TARGET): $(SRC)
+	$(CC) $(CFLAGS) -o $(TARGET) $(SRC)
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(TARGET)
+
+re: clean all
