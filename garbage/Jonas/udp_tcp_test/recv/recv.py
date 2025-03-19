@@ -1,4 +1,4 @@
-from obj import *
+from obj import * 
 import pickle
 
 with open("obj.pickle", "rb") as fr:

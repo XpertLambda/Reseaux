@@ -1,5 +1,4 @@
-// get the file send it to the receiver
-// send.c : Envoi d'un fichier .pickle via UDP sur le port 50003
+// send.c : Envoi d'un fichier .pickle via UDP en Broadcast sur le port 50003
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,10 +15,24 @@ void send_pickle(char *ip_dest, char *filename) {
         exit(EXIT_FAILURE);
     }
 
+    // 🔥 Activer le mode broadcast
+    int broadcast_enable = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcast_enable, sizeof(broadcast_enable)) < 0) {
+        perror("setsockopt (SO_BROADCAST)");
+        close(sockfd);
+        exit(EXIT_FAILURE);
+    }
+
     struct sockaddr_in dest_addr;
     dest_addr.sin_family = AF_INET;
     dest_addr.sin_port = htons(PORT);
-    inet_pton(AF_INET, ip_dest, &dest_addr.sin_addr);
+
+    // 🔥 Vérifier si l'adresse est en broadcast
+    if (strcmp(ip_dest, "255.255.255.255") == 0) {
+        dest_addr.sin_addr.s_addr = INADDR_BROADCAST;  // Utiliser l'adresse broadcast
+    } else {
+        inet_pton(AF_INET, ip_dest, &dest_addr.sin_addr);
+    }
 
     FILE *file = fopen(filename, "rb");
     if (!file) {
@@ -50,7 +63,7 @@ void send_pickle(char *ip_dest, char *filename) {
 
 int main(int argc, char *argv[]) {
     if (argc != 3) {
-        printf("Usage: %s <IP_dest> <fichier_pickle>\n", argv[0]);
+        printf("Usage: %s <IP_dest ou 255.255.255.255> <fichier_pickle>\n", argv[0]);
         return 1;
     }
     send_pickle(argv[1], argv[2]);

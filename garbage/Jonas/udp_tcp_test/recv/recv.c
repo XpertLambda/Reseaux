@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 
 #define BUF_SIZE 1024
-#define PORT 50002
+#define PORT 50003
 
 // Fonction pour extraire l'adresse IP de l'émetteur
 void get_sender_ip(struct sockaddr_in *sender_addr, char *ip_buffer, size_t buffer_size) {
@@ -26,13 +26,15 @@ void receive_pickle() {
 
     local_addr.sin_family = AF_INET;
     local_addr.sin_port = htons(PORT);
-    local_addr.sin_addr.s_addr = INADDR_ANY;
+    local_addr.sin_addr.s_addr = INADDR_ANY;  // Accepte les messages de n'importe quelle IP, y compris en broadcast
 
     if (bind(sockfd, (struct sockaddr*)&local_addr, sizeof(local_addr)) < 0) {
         perror("bind");
         close(sockfd);
         exit(EXIT_FAILURE);
     }
+
+    printf("En écoute sur le port %d (y compris les messages broadcast)...\n", PORT);
 
     char buffer[BUF_SIZE];
     char filename[256];
@@ -77,7 +79,6 @@ void receive_pickle() {
 }
 
 int main() {
-    printf("En écoute sur le port %d...\n", PORT);
     receive_pickle();
     return 0;
 }
