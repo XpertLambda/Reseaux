@@ -39,7 +39,7 @@ int main() {
             received_packets++;
             received_packet_sent++;
             last_query = external_query;
-            printf("[NEW PACKET]: %s | [ReceivedExtPackets]: %d \n",external_query, packet_number_sent);
+            printf("[NEW PACKET]: %s | [ReceivedExtPackets]: %d \n",external_query, received_packet_sent);
             last_stats_time = current_time;
         }
         
@@ -48,6 +48,7 @@ int main() {
             send_packet(python_communicator, external_query);
             sent_packets++;
             packet_number_sent++;
+            printf("[SEDNING PACKET]: %s | [SentIntPackets]: %d \n",external_query, packet_number_sent);
 
         }
         
@@ -56,6 +57,8 @@ int main() {
             send_packet(external_communicator, internal_query);
             sent_packets++;
             packet_number_sent++;
+            printf("[SEDNING PACKET]: %s | [SentExtPackets]: %d \n",internal_query, packet_number_sent);
+
         }
         
         // Check if a second has passed and print statistics
