@@ -32,19 +32,15 @@ int main() {
         if (internal_query != NULL) {
             received_packets++;
             received_packet_sent++;
-            if(current_time - last_stats_time > 0.5){
-                printf("[NEW PACKET]: %s | ReceivedIntPackets: %d \n",internal_query, received_packet_sent);
-                last_stats_time = current_time;
-            }
+            printf("[NEW PACKET]: %s | ReceivedIntPackets: %d \n",internal_query, received_packet_sent);
+            last_stats_time = current_time;
         }
         if (external_query != NULL) {
             received_packets++;
             received_packet_sent++;
             last_query = external_query;
-            if(current_time - last_stats_time > 0.5){
-                printf("[NEW PACKET]: %s | [ReceivedExtPackets]: %d \n",external_query, packet_number_sent);
-                last_stats_time = current_time;
-            }
+            printf("[NEW PACKET]: %s | [ReceivedExtPackets]: %d \n",external_query, packet_number_sent);
+            last_stats_time = current_time;
         }
         
         // Process the external query if it exists
