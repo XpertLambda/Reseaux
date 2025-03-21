@@ -1,6 +1,6 @@
 #include "communicator.h"
 
-static inline void generate_instance_id(Communicator* comm) {
+void generate_instance_id(Communicator* comm) {
     srand(time(NULL) ^ getpid());
     snprintf(comm->instance_id, ID_SIZE, "%08X", rand() % 0xFFFFFFFF);
 }
@@ -136,6 +136,8 @@ char* receive_packet(Communicator* comm) {
     
     char packet_id[ID_SIZE];
     char* query = process_packet(comm->recv_buffer, packet_id, ID_SIZE);
+
+    if(strcmp(packet_id,comm->instance_id)==0){return NULL;}
     
     if (query != comm->recv_buffer) {
         size_t content_len = strlen(query);
