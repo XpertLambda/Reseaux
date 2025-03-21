@@ -2,15 +2,14 @@ import pygame
 import tkinter as tk
 from tkinter import messagebox, Button, Tk
 
-from ImageProcessingDisplay import UserInterface, EndMenu, StartMenu, PauseMenu, IAMenu
+from ImageProcessingDisplay import UserInterface, EndMenu, StartMenu, PauseMenu, IAMenu, CreateMenu, JoinMenu
 from GLOBAL_VAR import *
-from Game.game_state import * 
+from Game.game_state import *
 
 
 class GameLoop:
     def __init__(self):
         pygame.init()
-
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE)
         self.screen.set_alpha(None)
         pygame.display.set_caption("Age Of Empaire II")
@@ -25,6 +24,8 @@ class GameLoop:
         self.state.set_screen_size(self.screen.get_width(), self.screen.get_height())
         self.startmenu = StartMenu(self.screen)
         self.pausemenu = PauseMenu(self.screen)
+        self.createmenu = CreateMenu(self.screen)
+        self.joinmenu = JoinMenu(self.screen)
         self.endmenu = EndMenu(self.screen)
         self.ui = UserInterface(self.screen)
         self.action_in_progress = False
@@ -43,13 +44,48 @@ class GameLoop:
                     self.state.states = PLAY
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
+            self.startmenu.handle_click(event.pos, self.state)
 
-            if self.startmenu.handle_click(event.pos):
-                self.state.set_map_size(self.startmenu.map_cell_count_x, self.startmenu.map_cell_count_y)
-                self.state.set_map_type(self.startmenu.map_options[self.startmenu.selected_map_index])
-                self.state.set_difficulty_mode(self.startmenu.selected_mode_index)
-                self.state.set_display_mode(self.startmenu.display_mode)
-                self.state.set_players(self.startmenu.selected_player_count)
+    def handle_join_events(self, event):
+        if pygame.key.get_pressed()[pygame.K_F12]:
+            loaded = self.state.load()
+            if loaded:
+                pygame.display.set_mode(
+                    (self.state.screen_width, self.state.screen_height),
+                    pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE,
+                )
+                if self.state.states == PAUSE:
+                    self.state.states = PLAY
+
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+
+            print("Mouse button down")
+            self.joinmenu.handle_click(event.pos, self.state)
+
+        elif event.type == pygame.MOUSEWHEEL:
+            # Événement molette transmis à JoinMenu
+            self.joinmenu.scroll(event.y)
+
+
+
+    def handle_create_events(self, event):
+        if pygame.key.get_pressed()[pygame.K_F12]:
+            loaded = self.state.load()
+            if loaded:
+                pygame.display.set_mode(
+                    (self.state.screen_width, self.state.screen_height),
+                    pygame.HWSURFACE | pygame.DOUBLEBUF | pygame.RESIZABLE,
+                )
+                if self.state.states == PAUSE:
+                    self.state.states = PLAY
+
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if self.createmenu.handle_click(event.pos, self.state):
+                self.state.set_map_size(self.createmenu.map_cell_count_x, self.createmenu.map_cell_count_y)
+                self.state.set_map_type(self.createmenu.map_options[self.createmenu.selected_map_index])
+                self.state.set_difficulty_mode(self.createmenu.selected_mode_index)
+                self.state.set_display_mode(self.createmenu.display_mode)
+                self.state.set_players(self.createmenu.selected_player_count)
                 self.state.start_game()
                 self.state.states = PLAY
                 
@@ -67,15 +103,15 @@ class GameLoop:
                 map_cell_rect_y = pygame.Rect(center_x - 75, center_y - 185, 150, 50)  # Rect for Y cell count
 
                 if player_count_rect.collidepoint(event.pos):
-                    self.startmenu.start_editing_player_count()
+                    self.createmenu.start_editing_player_count()
                 elif map_cell_rect_x.collidepoint(event.pos):
-                    self.startmenu.start_editing_map_cell_count_x()
+                    self.createmenu.start_editing_map_cell_count_x()
                 elif map_cell_rect_y.collidepoint(event.pos):
-                    self.startmenu.start_editing_map_cell_count_y()
+                    self.createmenu.start_editing_map_cell_count_y()
 
         elif event.type == pygame.KEYDOWN:
             # Handle keyboard events for editing
-            self.startmenu.handle_keydown(event)
+            self.createmenu.handle_keydown(event)
 
     def handle_config_events(self,dt, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -193,6 +229,10 @@ class GameLoop:
             self.startmenu.draw()
         elif self.state.states == CONFIG:
             self.iamenu.draw()
+        elif self.state.states == JOIN:
+            self.joinmenu.draw()
+        elif self.state.states == CREATE:
+            self.createmenu.draw()
         elif self.state.states == PAUSE:
             self.pausemenu.draw()
         elif self.state.states == END:
@@ -230,6 +270,10 @@ class GameLoop:
                     self.handle_start_events(event)
                 elif self.state.states == PAUSE:
                     self.handle_pause_events(dt, event)
+                elif self.state.states == CREATE:
+                    self.handle_create_events(event)
+                elif self.state.states == JOIN:
+                    self.handle_join_events(event)
                 elif self.state.states == PLAY:
                     self.state.change_music(self.state.map.state)
                     self.handle_play_events(event, mouse_x, mouse_y, dt)
