@@ -125,6 +125,8 @@ char* receive_query(Communicator* comm) {
         perror("Receive failed");
     }
     return NULL;
+    
+    
 }
 
 void cleanup_communicator(Communicator* comm) {
