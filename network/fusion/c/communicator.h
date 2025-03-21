@@ -15,6 +15,7 @@
 #define TRUE 1
 #define FALSE 0
 #define ID_SIZE 10
+#define SEPARATOR ':'
 #define BUFFER_SIZE 2048
 #define FLAGS 0
 #define SLEEP_TIME 10000
@@ -28,16 +29,20 @@
 #define BROADCAST_IP "255.255.255.255"
 
 typedef struct {
-    int sockfd;                   // Socket file descriptor
-    struct sockaddr_in destination_addr;  // Address to send to
-    struct sockaddr_in listener_addr;     // Address to receive on
-    char recv_buffer[BUFFER_SIZE];        // Buffer for receiving messages
-    char instance_id[ID_SIZE];  // Unique identifier for this instance
+    int sockfd;                         
+    struct sockaddr_in destination_addr;
+    struct sockaddr_in listener_addr;   
+    char recv_buffer[BUFFER_SIZE];
+    char instance_id[ID_SIZE];
 } Communicator;
 
+void generate_instance_id(Communicator* comm);
 Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr, int REUSEADDR_FLAG, int BROADCAST_FLAG);
-int send_query(Communicator* comm, const char* query);
-char* receive_query(Communicator* comm);
+void construct_packet(Communicator* comm, const char* query, char* packet, size_t packet_size);
+int send_packet(Communicator* comm, const char* message);
+char* process_packet(char* packet, char* packet_id, size_t id_size);
+void log_message(const char* message, const struct sockaddr_in* sender_addr, const char* packet_id);
+char* receive_packet(Communicator* comm);
 void cleanup_communicator(Communicator* comm);
 
 #endif // COMMUNICATOR_H

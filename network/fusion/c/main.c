@@ -13,17 +13,17 @@ int main() {
     
     while (1) {
         // Receive queries from both communicators
-        char* internal_query = receive_query(python_communicator);
-        char* external_query = receive_query(external_communicator);
+        char* internal_query = receive_packet(python_communicator);
+        char* external_query = receive_packet(external_communicator);
         
         // Process the external query if it exists
         if (external_query != NULL) {
-            send_query(python_communicator, external_query);
+            send_packet(python_communicator, external_query);
         }
         
         // Process the internal query if it exists
         if (internal_query != NULL) {
-            send_query(external_communicator, internal_query); // Fixed: send the query string
+            send_packet(external_communicator, internal_query); // Fixed: send the query string
         }
         
         usleep(SLEEP_TIME);
