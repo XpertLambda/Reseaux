@@ -32,11 +32,13 @@ int main() {
         if (internal_query != NULL) {
             received_packets++;
             received_packet_sent++;
+            printf("[NEW PACKET]: %s | ReceivedIntPackets: %d \n",internal_query, received_packet_sent);
         }
         if (external_query != NULL) {
             received_packets++;
             received_packet_sent++;
             last_query = external_query;
+            printf("[NEW PACKET]: %s | [ReceivedExtPackets]: %d \n",external_query, packet_number_sent);
         }
         
         // Process the external query if it exists
@@ -44,6 +46,7 @@ int main() {
             send_packet(python_communicator, external_query);
             sent_packets++;
             packet_number_sent++;
+
         }
         
         // Process the internal query if it exists
@@ -56,7 +59,6 @@ int main() {
         // Check if a second has passed and print statistics
         if (1) {
             //printf("[ID]:%s | [STATS] Sent: %d packets/sec ID:%d | Received: %d packets/sec ID:%d \n",last_query, sent_packets, packet_number_sent, received_packets,received_packet_sent);
-            printf("[CONTENT]:%s sentNumber:%d | ReceivedNumber:%d",last_query, packet_number_sent, received_packet_sent);
             
             // Reset counters and update the time
             sent_packets = 0;
