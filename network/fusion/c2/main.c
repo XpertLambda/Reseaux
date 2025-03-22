@@ -31,7 +31,7 @@ int main() {
         
         // Count received packets
         if (internal_query != NULL) {
-            printf("[NEW PACKET]: %s | ReceivedIntPackets: %d",internal_query, received_packet_sent);
+            printf("[NEW PACKET]: %s | [ReceivedIntPackets]: %d",internal_query, received_packet_sent);
             received_packets++;
             received_packet_sent++;
             if(atoi(internal_query) != received_packet_sent){
@@ -43,11 +43,10 @@ int main() {
         if (external_query != NULL) {
             received_packets++;
             received_packet_sent++;
-            last_query = external_query;
             printf("[NEW PACKET]: %s | [ReceivedExtPackets]: %d",external_query, received_packet_sent);
-            if(atoi(internal_query) != received_packet_sent){
+            if(atoi(internal_query) - packetlost != received_packet_sent){
                 packetlost++;
-                printf("Packet Loss : %d", packetlost);              
+                printf(" | Packet Loss : %d", packetlost);              
             }
             printf("\n");
         }
