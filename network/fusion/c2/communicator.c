@@ -59,6 +59,13 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
+    int no_delay = 1;
+    setsockopt(comm->sockfd, IPPROTO_UDP, UDP_CORK, &no_delay, sizeof(no_delay));
+
+    // Increase UDP buffer size dynamically based on network conditions
+    int buffer_autotune = 1;
+    setsockopt(comm->sockfd, SOL_SOCKET, SO_RCVBUFFORCE, &buffer_autotune, sizeof(buffer_autotune));
+    
     //Receiving address
     memset(&comm->listener_addr, 0, sizeof(comm->listener_addr));
     comm->listener_addr.sin_family = AF_INET;
