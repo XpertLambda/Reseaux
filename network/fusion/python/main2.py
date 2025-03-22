@@ -29,9 +29,15 @@ def main():
             current_time = time.time()
             
             # Send packets as fast as possible
+<<<<<<< HEAD
             message = f"hi {counter}"
             #comm.send_packet(message)
             #sent_packets += 1
+=======
+            message = f"{counter}"
+            comm.send_packet(message)
+            sent_packets += 1
+>>>>>>> 6a018d8d36a3827807fa67745d72e4505a4df3a0
             counter += 1
             
             # Check for incoming messages (non-blocking)

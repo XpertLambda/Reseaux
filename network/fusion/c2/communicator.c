@@ -59,8 +59,6 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
-
-
     //Receiving address
     memset(&comm->listener_addr, 0, sizeof(comm->listener_addr));
     comm->listener_addr.sin_family = AF_INET;
