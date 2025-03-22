@@ -16,8 +16,9 @@
 #define FALSE 0
 #define ID_SIZE 10
 #define SEPARATOR ':'
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 1472
 #define RCVBUF_SIZE 10485760
+#define SNDBUF_SIZE 10485760
 #define FLAGS 0
 #define SLEEP_TIME 1
 
@@ -27,8 +28,7 @@
 #define EXTERNAL_PORT 50002
 
 #define LOCALHOST_IP "127.0.0.1"
-#define MULTICAST_GROUP "239.0.0.1"  // New multicast group address
-#define MULTICAST_TTL 1             // TTL value for multicast packets
+#define BROADCAST_IP "255.255.255.255"
 
 typedef struct {
     int sockfd;                         
@@ -36,11 +36,10 @@ typedef struct {
     struct sockaddr_in listener_addr;   
     char recv_buffer[BUFFER_SIZE];
     char instance_id[ID_SIZE];
-    int is_multicast;                 // Flag to indicate if this is a multicast socket
 } Communicator;
 
 void generate_instance_id(Communicator* comm);
-Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr, int REUSEADDR_FLAG, int is_multicast);
+Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr, int REUSEADDR_FLAG, int BROADCAST_FLAG);
 void construct_packet(Communicator* comm, const char* query, char* packet, size_t packet_size);
 int send_packet(Communicator* comm, const char* message);
 char* process_packet(char* packet, char* packet_id, size_t id_size);
