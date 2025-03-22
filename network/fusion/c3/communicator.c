@@ -5,7 +5,7 @@ void generate_instance_id(Communicator* comm) {
     snprintf(comm->instance_id, ID_SIZE, "%08X", rand() % 0xFFFFFFFF);
 }
 
-Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr, int REUSEADDR_FLAG, int BROADCAST_FLAG) {
+Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr, int REUSEADDR_FLAG, int is_multicast) {
     Communicator* comm = (Communicator*)malloc(sizeof(Communicator));
     if (!comm) {
         perror("Memory allocation failed");
@@ -14,6 +14,9 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
     
     // Generate random unique ID
     generate_instance_id(comm);
+    
+    // Store multicast flag
+    comm->is_multicast = is_multicast;
 
     // Create socket
     if ((comm->sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -36,8 +39,22 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         free(comm);
         return NULL;
     }
-    if (setsockopt(comm->sockfd, SOL_SOCKET, SO_BROADCAST, &BROADCAST_FLAG, sizeof(BROADCAST_FLAG)) < 0) {
-        perror("setsockopt SO_BROADCAST failed");
+    
+    // Configure multicast settings if this is a multicast socket
+    if (is_multicast) {
+        // Set TTL for multicast packets
+        unsigned char ttl = MULTICAST_TTL;
+        if (setsockopt(comm->sockfd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl)) < 0) {
+            perror("setsockopt IP_MULTICAST_TTL failed");
+            close(comm->sockfd);
+            free(comm);
+            return NULL;
+        }
+    }
+
+    int recieve_buff = RCVBUF_SIZE;
+    if (setsockopt(comm->sockfd, SOL_SOCKET, SO_RCVBUF, &recieve_buff, sizeof(recieve_buff)) < 0) {
+        perror("setsockopt SO_RCVBUF failed");
         close(comm->sockfd);
         free(comm);
         return NULL;
@@ -54,6 +71,7 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
     comm->destination_addr.sin_family = AF_INET;
     comm->destination_addr.sin_port = htons(destination_port);
     comm->destination_addr.sin_addr.s_addr = inet_addr(destination_addr);
+    
     // Bind socket for receiving
     if (bind(comm->sockfd, (struct sockaddr*)&comm->listener_addr, sizeof(comm->listener_addr)) < 0) {
         perror("Binding socket failed");
@@ -62,7 +80,29 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
-    printf("[+] Initialized communicator (ID: %s, listener %s:%d, destination %s:%d)\n",  comm->instance_id, inet_ntoa(comm->listener_addr.sin_addr),  ntohs(comm->listener_addr.sin_port), inet_ntoa(comm->destination_addr.sin_addr), ntohs(comm->destination_addr.sin_port));
+    // For multicast receivers, join the multicast group
+    if (is_multicast && strcmp(destination_addr, LOCALHOST_IP) != 0) {
+        struct ip_mreq mreq;
+        mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_GROUP);
+        mreq.imr_interface.s_addr = INADDR_ANY;
+        
+        if (setsockopt(comm->sockfd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
+            perror("setsockopt IP_ADD_MEMBERSHIP failed");
+            close(comm->sockfd);
+            free(comm);
+            return NULL;
+        }
+        
+        printf("[+] Joined multicast group %s\n", MULTICAST_GROUP);
+    }
+
+    printf("[+] Initialized communicator (ID: %s, listener %s:%d, destination %s:%d, multicast: %s)\n", 
+           comm->instance_id, 
+           inet_ntoa(comm->listener_addr.sin_addr), 
+           ntohs(comm->listener_addr.sin_port), 
+           inet_ntoa(comm->destination_addr.sin_addr), 
+           ntohs(comm->destination_addr.sin_port),
+           is_multicast ? "YES" : "NO");
 
     return comm;
 }
@@ -83,15 +123,37 @@ int send_packet(Communicator* comm, const char* query) {
     char packet[BUFFER_SIZE];
     construct_packet(comm, query, packet, BUFFER_SIZE);
 
-    int result = sendto(comm->sockfd, packet, strlen(packet), 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
-    if (result < 0) {
-        if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            perror("Send failed");
+    // If this is a multicast socket and not sending to localhost, send to the multicast group
+    if (comm->is_multicast && strcmp(destination_ip, LOCALHOST_IP) != 0) {
+        struct sockaddr_in multicast_addr;
+        memset(&multicast_addr, 0, sizeof(multicast_addr));
+        multicast_addr.sin_family = AF_INET;
+        multicast_addr.sin_port = htons(destination_port);
+        multicast_addr.sin_addr.s_addr = inet_addr(MULTICAST_GROUP);
+        
+        int result = sendto(comm->sockfd, packet, strlen(packet), 0, 
+                          (struct sockaddr*)&multicast_addr, sizeof(multicast_addr));
+        if (result < 0) {
+            if (errno != EAGAIN && errno != EWOULDBLOCK) {
+                perror("Multicast send failed");
+            }
+            return -1;
         }
-        return -1;
+        //printf("[+] Sent: %s to multicast group %s:%d \n", packet, MULTICAST_GROUP, destination_port);
+        return result;
+    } else {
+        // Regular unicast sending
+        int result = sendto(comm->sockfd, packet, strlen(packet), 0, 
+                          (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
+        if (result < 0) {
+            if (errno != EAGAIN && errno != EWOULDBLOCK) {
+                perror("Send failed");
+            }
+            return -1;
+        }
+        //printf("[+] Sent: %s to %s:%d \n", packet, destination_ip, destination_port);
+        return result;
     }
-    printf("[+] Sent: %s to %s:%d \n", packet, destination_ip, destination_port);
-    return result;
 }
 
 char* process_packet(char* packet, char* packet_id, size_t id_size) {
@@ -143,12 +205,22 @@ char* receive_packet(Communicator* comm) {
         memmove(comm->recv_buffer, query, content_len + 1);
     }
 
-    log_message(comm->recv_buffer, &sender_addr, packet_id);
+    //log_message(comm->recv_buffer, &sender_addr, packet_id);
     return comm->recv_buffer;
 }
 
 void cleanup_communicator(Communicator* comm) {
     if (comm) {
+        // If this is a multicast socket, leave the multicast group
+        if (comm->is_multicast) {
+            struct ip_mreq mreq;
+            mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_GROUP);
+            mreq.imr_interface.s_addr = INADDR_ANY;
+            
+            setsockopt(comm->sockfd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &mreq, sizeof(mreq));
+            printf("[+] Left multicast group %s\n", MULTICAST_GROUP);
+        }
+        
         close(comm->sockfd);
         free(comm);
         printf("[+] Communicator cleaned up\n");
