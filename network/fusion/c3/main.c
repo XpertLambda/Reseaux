@@ -2,10 +2,7 @@
 #include <time.h>
 
 int main() {
-    // Initialize communicator for local communication with Python (not multicast)
-    Communicator* python_communicator = init_communicator(C_PORT1, PYTHON_PORT, LOCALHOST_IP, TRUE, FALSE);
-    
-    // Initialize communicator for external communication using multicast
+    Communicator* python_communicator = init_communicator(C_PORT1, PYTHON_PORT, LOCALHOST_IP, TRUE, TRUE);
     Communicator* external_communicator = init_communicator(C_PORT2, EXTERNAL_PORT, MULTICAST_GROUP, TRUE, TRUE);
     
     if (!python_communicator || !external_communicator) {
@@ -41,17 +38,15 @@ int main() {
                 packetlost++;
                 printf("Packet Loss : %d", packetlost);              
             }
-            printf("\n");
         }
         if (external_query != NULL) {
             received_packets++;
             received_packet_sent++;
+            printf("\nPacket Lost : %d | ", packetlost);              
             printf("[NEW PACKET]: %s | [ReceivedExtPackets]: %d",external_query, received_packet_sent);
-            if(atoi(internal_query) - packetlost != received_packet_sent){
+            if(atoi(external_query) - packetlost != received_packet_sent){
                 packetlost++;
-                printf(" | Packet Loss : %d", packetlost);              
             }
-            printf("\n");
         }
         
         // Process the external query if it exists
@@ -59,7 +54,8 @@ int main() {
             send_packet(python_communicator, external_query);
             sent_packets++;
             packet_number_sent++;
-            printf("[SENDING PACKET]: %s | [SentIntPackets]: %d \n",external_query, packet_number_sent);
+            //printf("[SEDNING PACKET]: %s | [SentIntPackets]: %d \n",external_query, packet_number_sent);
+
         }
         
         // Process the internal query if it exists
@@ -67,7 +63,9 @@ int main() {
             send_packet(external_communicator, internal_query);
             sent_packets++;
             packet_number_sent++;
-            printf("[SENDING PACKET]: %s | [SentExtPackets]: %d \n",internal_query, packet_number_sent);
+            printf("[SEDNING PACKET]: %s | [SentExtPackets]: %d \n",internal_query, packet_number_sent);
+
+
         }
         
         // Check if a second has passed and print statistics

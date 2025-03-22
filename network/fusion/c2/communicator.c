@@ -42,9 +42,13 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         free(comm);
         return NULL;
     }
-
-
-
+    int recieve_buff=RCVBUF_SIZE;
+     if (setsockopt(comm->sockfd, SOL_SOCKET, SO_RCVBUF, &recieve_buff, sizeof(recieve_buff)) < 0) {
+        perror("setsockopt SO_BROADCAST failed");
+        close(comm->sockfd);
+        free(comm);
+        return NULL;
+    }
     //Receiving address
     memset(&comm->listener_addr, 0, sizeof(comm->listener_addr));
     comm->listener_addr.sin_family = AF_INET;
