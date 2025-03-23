@@ -1,28 +1,33 @@
+ID_SEPERATOR = 100000
+
 class IdGenerator:
 
-    def __init__(self, _id_ticket = 0):
-        self.id_ticket = _id_ticket
-        self.free_tickets = set()
+    def __init__(self):
+        self.team_tickets = {}
 
-    def give_ticket(self):
-        ticket = None
+    def give_ticket(self, team):
 
-        if len(self.free_tickets):
-            ticket = self.free_tickets.pop()
-        else:
-            ticket = self.id_ticket
-            self.id_ticket += 1
 
-        return ticket
-    
-    def free_ticket(self, _id_ticket):
-        self.free_tickets.add(_id_ticket)
-    
+
+        team_ticket = self.get_team_ticket(team)
+
+
+        return team * ID_SEPERATOR + team_ticket
+
+
+    def get_team_ticket(self, team):
+
+        team_gen = self.team_tickets.get(team, None)
+
+        if team_gen == None:
+
+            self.team_tickets[team] = 0
+            team_gen = self.team_tickets.get(team, None)
+
+        self.team_tickets[team] += 1
+
+        return team_gen
 
     def __repr__(self):
-        rep = f"c_id:{self.id_ticket} | free_tickets:"
 
-        for id in self.free_tickets:
-            rep += f" {id}"
-
-        return rep
+        return f"team_tickets: {self.team_tickets}"

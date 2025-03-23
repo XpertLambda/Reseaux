@@ -18,6 +18,9 @@ class CythonCommunicator:
         self.sock.bind(('0.0.0.0', python_port))
         self.sock.setblocking(False)
 
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, RCVBUF_SIZE)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, SNDBUF_SIZE)
+
         print(f"[+] Initialized communicator (python_port: {python_port}, c_port: {c_port}, c_ip: {c_ip})")
 
     def send_packet(self, message):

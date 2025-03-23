@@ -2,6 +2,12 @@ class Storage:
     def __init__(self):
         self.resources = {"gold":0,"wood":0,"food":0}  #{'wood': 50, 'food': 30}
 
+
+    def to_dict(self):
+        return {
+            "resources":self.resources
+        }
+
     def add_resource(self, resource_type, amount):
         if resource_type not in self.resources:
             self.resources[resource_type] = 0
@@ -13,7 +19,7 @@ class Storage:
 
         to_remove = min(amount, self.resources[resource_type])
         self.resources[resource_type] -= to_remove
-        
+
         return to_remove  # Return the amount actually removed
 
     def lose_resource(self):
@@ -21,5 +27,5 @@ class Storage:
 
         for resource, amount in self.resources.items():
             self.resources[resource] = 0
-        
+
         return resources

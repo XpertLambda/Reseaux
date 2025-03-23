@@ -1,7 +1,7 @@
 from GLOBAL_VAR import *
 from idgen import *
 #from AITools.player import *
-from Entity.entity import * 
+from Entity.entity import *
 class Building(Entity):
 
     def __init__(self, id_gen,cell_Y, cell_X, position, team,representation, sq_size, hp, cost, build_time, walkable = False):
@@ -28,15 +28,15 @@ class Building(Entity):
         for resource, amount in resources.items():
             if amount < self.cost.get(resource, None):
                 return False
-        
-        return True 
-    
+
+        return True
+
     def update_animation_frame(self, dt):
         global ONE_SEC
-        
+
         self.animation_time_acc += dt
 
-        time_per_frame = ONE_SEC / self.animation_speed[self.state]  
+        time_per_frame = ONE_SEC / self.animation_speed[self.state]
 
         frames_to_advance = int(self.animation_time_acc / time_per_frame)
 
@@ -55,23 +55,23 @@ class Building(Entity):
         self.animation_time_acc += dt
         if self.animation_time_acc > ONE_SEC/self.animation_speed[self.state]:
 
-            
+
             self.animation_time_acc = 0
 
             self.animation_frame = (self.animation_frame + 1)%(self.len_current_animation_frames()) #the length changes with respect to the state but the zoom and direction does not change the animation frame count
-            
+
             water_mark_list =WATER_MARK_SKIP.get(self.representation)
             if (water_mark_list):
                 if (self.state, self.display_choice, self.animation_frame) in water_mark_list:
                     self.animation_frame = (self.animation_frame + 1)%(self.len_current_animation_frames()) #the length changes with respect to the state but the zoom and direction does not change the animation frame count
         """
     def display(self, dt, screen, camera, g_width, g_height):
-        
+
         iso_x, iso_y = camera.convert_to_isometric_2d(self.position.x, self.position.y)
-        
+
         px, py = camera.convert_to_isometric_2d(self.cell_X*TILE_SIZE_2D + TILE_SIZE_2D/2, self.cell_Y*TILE_SIZE_2D + TILE_SIZE_2D/2)
         if (camera.check_in_point_of_view(iso_x, iso_y, g_width, g_height)):
-            
+
             #camera.draw_box(screen, self)
 
             display_image(META_SPRITES_CACHE_HANDLE(camera.zoom, list_keys = [self.representation, self.state, self.display_choice, self.animation_frame], camera = camera), iso_x, iso_y, screen, 0x04, 1)
@@ -85,7 +85,7 @@ class Building(Entity):
                 draw_percentage_bar(screen, camera,pro_iso_x, pro_iso_y, self.build_progress*self.build_time, self.build_time, self.sq_size)
                 draw_text(str(len(self.builders)),pro_iso_x, pro_iso_y, screen, int(camera.zoom * camera.img_scale*20))
 
-    """         
+    """
     def display(self,dt, screen, camera, g_width, g_height):
 
         iso_x, iso_y = camera.convert_to_isometric_2d(self.position.x, self.position.y)
@@ -98,17 +98,17 @@ class Building(Entity):
     def change_state(self, state):
         self.state = state
         self.animation_frame = 0
-        
+
     def is_dead(self):
         return self.hp <= 0
-    
+
     def will_vanish(self):
         return self.is_dead() and ((self.animation_frame == self.len_current_animation_frames() - 1))
 
     def update(self, dt, camera = None, screen = None):
         self.update_animation_frame(dt)
         self.update_construction(dt)
-        
+
 
     def update_builders(self):
         for builder_id in list(self.builders.keys()):
@@ -123,12 +123,12 @@ class Building(Entity):
         if self.state == BUILDING_INPROGRESS:
             self.update_builders()
             number_of_builder = len(self.builders)
-            
+
             if number_of_builder > 0:
                         # formula of the effective we need to update the effective time cause of dynamic updates
 
-            
-                if self.hp < self.max_hp: 
+
+                if self.hp < self.max_hp:
                     effective_time = (3 * self.max_hp/self.build_time * ONE_SEC) / (number_of_builder + 2)
 
                     missing_health = (self.max_hp - self.hp)
@@ -142,7 +142,7 @@ class Building(Entity):
                         self.hp = self.max_hp
 
 
-                else: 
+                else:
                     effective_time = (3 * self.build_time * ONE_SEC) / (number_of_builder + 2)
 
                     progress_ratio = dt/effective_time
@@ -155,4 +155,4 @@ class Building(Entity):
 
 
     def get_html(self):
-        return f'<li class="building">{self.dict_repr.get(self.representation)}<br> Position : {self.position}</li>'
+        return f'<li class="building">{DICT_RPR.get(self.representation)}<br> Position : {self.position}</li>'

@@ -26,6 +26,7 @@ FPS = 60
 MEDIEVALSHARP = "MedievalSharp-Regular.ttf"
 
 
+
 GOLD_COLOR = (255, 215, 0)
 BROWN_TREE_COLOR = (139, 69, 19)
 MINIMAP_COLOR = (53, 94, 59)
@@ -260,7 +261,26 @@ PROJECTILE_ANGLE_MAPPING ={
     14*math.pi/8:8,
     15*math.pi/8:7
 }
-
+DICT_RPR = {
+    'wood':"Wood",
+    'gold':"Gold",
+    'food':"Food",
+    'v':"Villager",
+    's':"Swordsman",
+    'h':"Horseman",
+    'a':"Archer",
+    'am':"AxeMan",
+    'ca':"CavalryArcher",
+    'sm':"SpearMan",
+    'T':"TownCenter",
+    'H':"House",
+    'C':"Camp",
+    'F':"Farm",
+    'B':"Barracks",
+    'S':"Stable",
+    'A':"ArcheryRange",
+    'K':"Keep"
+    }
 def MAP_ANGLE_INDEX(angle, angle_map):
     animation_index =0
     shortest_distance = 10 # big enoug so difference between two angle will never be that big

@@ -422,7 +422,7 @@ class Map:
 
         self.c_generate_clusters(num_players, gen_mode)
 
-        print(f"GEN: {self.id_generator.id_ticket}")
+        print(f"GEN: {self.id_generator}")
 
     def c_generate_clusters(self, num_players, gen_mode):
 

@@ -22,12 +22,12 @@ class Resources(Entity):
 
     def is_dead(self):
         return self.resources[self.resource_indicator] <= 0
-    
+
     def remove_resources(self, amount):
-        
+
         self.resources[self.resource_indicator] -= amount
 
         return amount
 
 def get_resource_html(self):
-        return f'<li class="resource">f"{self.dict_repr.get(self.representation)} : {self.position}</li>'
+        return f'<li class="resource">f"{DICT_RPR.get(self.representation)} : {self.position}</li>'

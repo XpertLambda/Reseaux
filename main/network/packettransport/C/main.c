@@ -24,8 +24,9 @@ int main() {
     double internal_total_size = 0.0;
     double external_total_size = 0.0;
 
-    time_t last_time = time(NULL);
 
+    //time_t last_time = time(NULL);
+    
     while (1) {
         // Receive queries from both communicators
         char* internal_query = receive_packet(python_communicator);
@@ -64,6 +65,7 @@ int main() {
         }
 
         // Check if 1 second has passed
+        /*
         time_t current_time = time(NULL);
         if (difftime(current_time, last_time) >= 1.0) {
             double internal_loss_percentage = (internal_total_receive + internal_packet_lost) == 0 ? 0.0 : 
@@ -79,7 +81,7 @@ int main() {
 
             last_time = current_time;
         }
-
+        */
         usleep(SLEEP_TIME);
     }
 

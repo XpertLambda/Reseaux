@@ -14,14 +14,14 @@
 
 #define TRUE 1
 #define FALSE 0
-#define BUFFER_SIZE 1472
+#define BUFFER_SIZE 61440 // 60KB/packet 
 #define ID_SIZE 10
 #define SEPARATOR '~'
 
 #define REUSEADDR_FLAG 1
 #define BROADCAST_FLAG 1
-#define RCVBUF_SIZE 10485760
-#define SNDBUF_SIZE 10485760
+#define RCVBUF_SIZE 10485760 // 10 MB buffer before calling recv
+#define SNDBUF_SIZE 10485760 // 10 MB buffer before calling send  
 #define SOCKET_PRIORITY 6
 
 #define SLEEP_TIME 1

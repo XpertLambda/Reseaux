@@ -113,9 +113,6 @@ void construct_packet(Communicator* comm, const char* query, char* packet, size_
 }
 
 int send_packet(Communicator* comm, const char* query) {
-    char* destination_ip = inet_ntoa(comm->destination_addr.sin_addr);
-    int destination_port = ntohs(comm->destination_addr.sin_port);
-
     char packet[BUFFER_SIZE];
     construct_packet(comm, query, packet, BUFFER_SIZE);
 
@@ -126,7 +123,7 @@ int send_packet(Communicator* comm, const char* query) {
         }
         return -1;
     }
-    //printf("[+] Sent: %s to %s:%d \n", packet, destination_ip, destination_port);
+    //printf("[+] Sent: %s to %s:%d \n", packet, inet_ntoa(comm->destination_addr.sin_addr), ntohs(comm->destination_addr.sin_port));
     return result;
 }
 

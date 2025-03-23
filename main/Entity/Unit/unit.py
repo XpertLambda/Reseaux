@@ -15,7 +15,7 @@ class Unit(Entity):
         self.distance_acc = 0
         self.attack = attack
         self.attack_speed = attack_speed
-        self.range= _range
+        self.range = _range
         self.attack_time_acc = 0
         self.will_attack = False
         self.attack_frame = 0
@@ -24,10 +24,10 @@ class Unit(Entity):
         self.check_range_with_target = False
         self.first_time_pass = True
         self.locked_with_target = False
-        
+
         self.speed=speed
-        
-        
+
+
         self.move_position = PVector2(0, 0)
         self.path_to_position = None
         self.current_to_position = None
@@ -43,7 +43,6 @@ class Unit(Entity):
 
         self.avoid_time_acc = 0
         #animation attributes
-        self.image = None
         self.animation_frame = 0
         self.animation_direction = 0 # direction index for display
         self.animation_time_acc = 0
@@ -57,10 +56,10 @@ class Unit(Entity):
 
     def adapte_attack_delta_time(self):
         self.attack_delta_time = (self.attack_speed) * ONE_SEC
-        
+
         self.animation_speed[2] = self.animation_speed[2]/self.attack_speed
 
-    
+
     def set_direction_index(self):
         self.animation_direction = MAP_ANGLE_INDEX(self.direction, UNIT_ANGLE_MAPPING) # map the animation index for the direction with repect to the sprites sheet
 
@@ -69,19 +68,19 @@ class Unit(Entity):
             if amount < self.cost.get(resource, None):
                 return False
 
-        return True 
+        return True
 
     def update_path_nodes(self, entity):
         if self.path_to_position:
-            
+
             for Y_to_maybe_remove in range(entity.cell_Y, entity.cell_Y - entity.sq_size, -1):
                 for X_to_maybe_remove in range(entity.cell_X, entity.cell_X - entity.sq_size, -1):
-                    
+
                     self.path_to_position.pop((Y_to_maybe_remove, X_to_maybe_remove), None)
 
             if self.path_to_position:
                 current_node, _ = next(iter(self.path_to_position.items()))
-                
+
                 found_around = True
                 next_entity = None
 
@@ -98,7 +97,7 @@ class Unit(Entity):
                                         found_around = False
                                         next_entity = entity
                                         break
-                
+
                 if found_around:
                     around_path = A_STAR(self.cell_X, self.cell_Y, current_node[1], current_node[0], self.linked_map, self, pass_flags = 1)
 
@@ -118,13 +117,13 @@ class Unit(Entity):
 
 
 
-            
+
     def len_current_animation_frames(self):
         return len(SPRITES.get(self.representation, None).get(self.state,None).get(0, None)) #the length changes with respect to the state but the zoom and direction does not change the animation frame count
- 
+
     def update_animation_frame(self, dt):
         global ONE_SEC  # Assuming ONE_SEC = 1.0 for simplicity
-        
+
         # Add the elapsed time to the accumulator
         self.animation_time_acc += dt
 
@@ -149,10 +148,10 @@ class Unit(Entity):
 
     def track_cell_position(self):
         if (self.changed_cell_position()):
-            
+
             live_cell_X = int(floor(self.position.x/self.linked_map.tile_size_2d))
             live_cell_Y = int(floor(self.position.y/self.linked_map.tile_size_2d))
-            cell_free = True 
+            cell_free = True
 
             live_region = self.linked_map.entity_matrix.get((live_cell_Y//self.linked_map.region_division, live_cell_X//self.linked_map.region_division))
             if (live_region):
@@ -168,11 +167,11 @@ class Unit(Entity):
                 self.cell_X, self.cell_Y = live_cell_X, live_cell_Y # update the cell
                 self.change_cell_on_map()
 
-    def change_cell_on_map(self): # to change the cell position on the map 
+    def change_cell_on_map(self): # to change the cell position on the map
         region = self.linked_map.entity_matrix.get((self.cell_Y//self.linked_map.region_division, self.cell_X//self.linked_map.region_division))
 
         if region == None:
-            self.linked_map.entity_matrix[(self.cell_Y//self.linked_map.region_division, self.cell_X//self.linked_map.region_division)] = {}    
+            self.linked_map.entity_matrix[(self.cell_Y//self.linked_map.region_division, self.cell_X//self.linked_map.region_division)] = {}
             region = self.linked_map.entity_matrix.get((self.cell_Y//self.linked_map.region_division, self.cell_X//self.linked_map.region_division))
 
         current_team_region = region.get(self.team, None)
@@ -182,7 +181,7 @@ class Unit(Entity):
             current_team_region = region.get(self.team, None)
 
         current_set = current_team_region.get((self.cell_Y, self.cell_X))
-        
+
         if current_set == None:
             current_team_region[(self.cell_Y, self.cell_X)] = set()
             current_set = current_team_region.get((self.cell_Y, self.cell_X))
@@ -207,17 +206,17 @@ class Unit(Entity):
                 to_target_directly = True
             elif len(self.path_to_position) == 1:
                 # if we entered the last last cell we dont go to the center of the cell, straight to the position
-                
-                last_node, _ = next(iter(self.path_to_position.items())) 
+
+                last_node, _ = next(iter(self.path_to_position.items()))
                 to_target_directly = (self.cell_X == last_node[1] and self.cell_Y == last_node[0])
 
             if to_target_directly:
                 self.target_direction = self.position.alpha_angle(self.move_position)
-                
+
                 amount_x = math.cos(self.target_direction)* (dt/ONE_SEC) * self.speed * self.linked_map.tile_size_2d/2
                 amount_y = math.sin(self.target_direction)* (dt/ONE_SEC) * self.speed * self.linked_map.tile_size_2d/2
                 self.position.x += amount_x
-                self.position.y += amount_y    
+                self.position.y += amount_y
 
                 if self.position == self.move_position:
                     self.path_to_position = None
@@ -248,8 +247,8 @@ class Unit(Entity):
                 amount_x = math.cos(self.target_direction) * (dt/ONE_SEC) * self.speed * self.linked_map.tile_size_2d/2
                 amount_y = math.sin(self.target_direction) * (dt/ONE_SEC) * self.speed * self.linked_map.tile_size_2d/2
                 self.position.x += amount_x
-                self.position.y += amount_y 
-            
+                self.position.y += amount_y
+
                 if self.position == current_path_node_position:
                     self.path_to_position.pop(current_node)
         else:
@@ -264,7 +263,7 @@ class Unit(Entity):
             self.current_to_position = PVector2(self.move_position.x, self.move_position.y)
             current_node, _ = next(iter(self.path_to_position.items()))
             self.path_to_position.pop(current_node)
-        else : 
+        else :
             self.change_state(UNIT_IDLE)
 
     def try_to_move(self, dt,camera, screen):
@@ -277,7 +276,7 @@ class Unit(Entity):
                     if not(self.state == UNIT_WALKING):
                         self.change_state(UNIT_WALKING)
                     self.move_to_position(dt, camera, screen )
-    
+
     def avoid_others(self, dt):
         #self.avoid_time_acc +dt
         collided = False
@@ -292,7 +291,7 @@ class Unit(Entity):
             for offsetX in [-1, 0, 1]:
                 if current_num == max_num:
                     break
-                
+
                 currentY = self.cell_Y + offsetY
                 currentX = self.cell_X + offsetX
 
@@ -308,15 +307,15 @@ class Unit(Entity):
 
                                 if entity.id != self.id  and entity.id != self._entity_optional_target_id:
                                     distance = self.position.abs_distance(entity.position)
-                    
+
                                     if isinstance(entity, Unit):
                                         if distance < COLLISION_THRESHOLD and distance > 1:
                                             if self.collide_with_entity(entity):
-                                                
+
                                                 #self.update_path_nodes(entity)
 
                                                 # If the distance between units is smaller than a threshold, avoid collision
-                                                
+
                                                 # Calculate the direction to push the unit away from the other
                                                 diff = self.position - entity.position
                                                 diff.normalize()  # Normalize to get direction
@@ -334,7 +333,7 @@ class Unit(Entity):
 
                                                 diff = self.position - entity.position
                                                 diff.normalize()  # Normalize to get direction
-                                                diff *= TILE_SIZE_2D/distance  
+                                                diff *= TILE_SIZE_2D/distance
                                                 avoidance_force += diff
                                                 collided = True
                                                 current_num += 1
@@ -367,14 +366,14 @@ class Unit(Entity):
         if self.will_attack:
             self.will_attack = False
 
-        # to avoid index out of bound in the animationframes list, 
-        # for exmample for Archer 
+        # to avoid index out of bound in the animationframes list,
+        # for exmample for Archer
         # idle has 60 frames, move has 30
         # the unit moves on the 58th frame
         # the state changes, now it is moving, but the frame index is 58
         # and move has max 30, 58 > 30 ==> unsupported type (Nonetype)
 
-          
+
 
     def attack_entity(self, entity_id):
 
@@ -442,10 +441,10 @@ class Unit(Entity):
                 self.direction %= (2 * math.pi)
 
     def get_unit_html(self):
-        return f'<li class="unit">{self.dict_repr.get(self.representation)} : {self.position}</li>'
+        return f'<li class="unit">{DICT_RPR.get(self.representation)} : {self.position}</li>'
 
     def try_to_defend(self,dt):
-        self.defend_time_acc += dt 
+        self.defend_time_acc += dt
 
         if self.defend_time_acc > ONE_SEC/4:
             self.defend_time_acc = 0
@@ -454,13 +453,13 @@ class Unit(Entity):
 
     def around_detector(self):
         detector_shape = Circle(self.position.x, self.position.y, 10*TILE_SIZE_2D)
-        
+
         reg_div = self.linked_map.region_division
         borders = math.ceil(10/reg_div)
         reg_Y, reg_X = self.cell_Y//reg_div, self.cell_X//reg_div
 
         closest_distance = float('inf')
-        
+
         for offset_Y in range(-borders, borders + 1):
             for offset_X in range(-borders, borders + 1):
 
@@ -481,7 +480,7 @@ class Unit(Entity):
                                             current_distance = self.position.abs_distance(entity.position)
                                             if current_distance < closest_distance:
                                                 closest_distance = current_distance
-                                                self.entity_defend_from_id = entity.id 
+                                                self.entity_defend_from_id = entity.id
 
     def reset_target(self):
         if self.entity_defend_from_id != None:
@@ -497,6 +496,4 @@ class Unit(Entity):
 
         # Y offsets distincts pour chaque joueur
         y_offset = 0
-        return f'<li class="unit">{self.dict_repr.get(self.representation)}<br>Position : {self.position}<br>HP : {self.hp}</li>'
-
-        
+        return f'<li class="unit">{DICT_RPR.get(self.representation)}<br>Position : {self.position}<br>HP : {self.hp}</li>'

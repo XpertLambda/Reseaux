@@ -15,29 +15,9 @@ class Entity():
         if id:
             self.id = id
         else:
-            self.id = id_gen.give_ticket() + team * 10000
+            self.id = id_gen.give_ticket(team)
         self.sq_size = sq_size
-        self.image = None
-        self.dict_repr = {
-            'wood':"Wood",
-            'gold':"Gold",
-            'food':"Food",
-            'v':"Villager",
-            's':"Swordsman",
-            'h':"Horseman",
-            'a':"Archer",
-            'am':"AxeMan",
-            'ca':"CavalryArcher",
-            'sm':"SpearMan",
-            'T':"TownCenter",
-            'H':"House",
-            'C':"Camp",
-            'F':"Farm",
-            'B':"Barracks",
-            'S':"Stable",
-            'A':"ArcheryRange",
-            'K':"Keep"
-            }
+
 
 
 
@@ -75,3 +55,15 @@ class Entity():
 
     def is_free(self):
         return True
+
+    def to_json(self):
+        attributes = self.__dict__.copy()
+
+        if 'linked_map' in attributes:
+            del attributes['linked_map'] # avoid saving the map
+
+        for key, value in list(attributes.items()):
+            if hasattr(value, 'to_dict'):
+                attributes[key] = value.to_dict() # special format for personal object
+
+        return attributes

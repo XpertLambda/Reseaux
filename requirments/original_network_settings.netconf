@@ -1,0 +1,9 @@
+# Original network settings - Sun Mar 23 04:15:36 PM CET 2025
+net.core.rmem_max=212992
+net.core.wmem_max=212992
+net.core.rmem_default=212992
+net.core.wmem_default=212992
+net.ipv4.udp_mem=184320	245760	368640
+net.ipv4.udp_rmem_min=4096
+net.ipv4.udp_wmem_min=4096
+fs.file-max=9223372036854775807
