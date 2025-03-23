@@ -1,0 +1,5 @@
+to capture the udp packets type : sudo tcpdump -i [interface_name] udp port [port_num]
+even if the device is blocking the msg
+if so type :
+sudo iptables -A INPUT -p udp --dport [port_num] -j ACCEPT
+then restart network
