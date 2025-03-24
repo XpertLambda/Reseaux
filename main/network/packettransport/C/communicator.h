@@ -33,7 +33,7 @@
 #define EXTERNAL_PORT 50002
 
 #define LOCALHOST_IP "127.0.0.1"
-#define BROADCAST_IP "192.168.1.190"
+#define BROADCAST_IP "255.255.255.255"
 
 typedef struct {
     int sockfd;

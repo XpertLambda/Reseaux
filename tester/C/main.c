@@ -6,6 +6,8 @@ int main() {
     Communicator* python_communicator = init_communicator(C_PORT1, PYTHON_PORT, LOCALHOST_IP);
     Communicator* external_communicator = init_communicator(C_PORT2, EXTERNAL_PORT, BROADCAST_IP);
 
+    Keys *keys= init_keys();
+
     if (!python_communicator || !external_communicator) {
         fprintf(stderr, "Failed to initialize communicators\n");
         return EXIT_FAILURE;
@@ -28,8 +30,8 @@ int main() {
 
     while (1) {
         // Receive queries from both communicators
-        char* internal_query = receive_packet(python_communicator);
-        char* external_query = receive_packet(external_communicator);
+        char* internal_query = receive_packet(python_communicator, keys);
+        char* external_query = receive_packet(external_communicator, keys);
 
         // Count received packets and track size in KB
         if (internal_query != NULL) {
@@ -53,13 +55,13 @@ int main() {
 
         // Process the external query if it exists
         if (external_query != NULL) {
-            send_packet(python_communicator, external_query);
+            send_packet(python_communicator, keys, external_query);
             internal_total_sent++;
         }
 
         // Process the internal query if it exists
         if (internal_query != NULL) {
-            send_packet(external_communicator, internal_query);
+            send_packet(external_communicator, keys, internal_query);
             external_total_sent++;
         }
 

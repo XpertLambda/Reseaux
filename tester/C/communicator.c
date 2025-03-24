@@ -46,7 +46,7 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
-     // Set TTL value
+    // Set TTL value
     int ttl_value=TTL_VALUE;
     if (setsockopt(comm->sockfd, IPPROTO_IP, IP_TTL, &ttl_value, sizeof(ttl_value)) < 0) {
         perror("Failed to set IP_TTL");
@@ -118,14 +118,73 @@ void construct_packet(Communicator* comm, const char* query, char* packet, size_
     }
 }
 
-int send_packet(Communicator* comm, const char* query) {
+Keys* init_keys(){
+    Keys *keys=(Keys*)malloc(sizeof(Keys));
+    keys->aes_key=(unsigned char)malloc(KEY_SIZE * sizeof(unsigned char));
+        if (!keys->aes_key) {
+        perror("key allocation failed");
+        return NULL;
+    }
+
+    keys->aes_iv=(unsigned char)malloc(IV_SIZE * sizeof(unsigned char));
+        if (!keys->aes_iv) {
+        perror("iv allocation failed");
+        return NULL;
+    }
+    //iv for more security: when we have 2 same messages it avoids the ressemblance of their encryptions
+
+    if(!RAND_bytes(keys->aes_key, sizeof(keys->aes_key))){
+        perror("failed to generate key");
+        return;
+    }; //for generating a random key
+    if(!RAND_bytes(keys->aes_iv, sizeof(keys->aes_iv))){
+        perror("failed to generate iv");
+        return;
+    }; //for generating a random iv
+
+    return keys;
+}
+
+int aes_encrypt (const char* packet, unsigned char *aes_key, unsigned char *aes_iv, const unsigned char *cipherpacket){
+        EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+        int len, cipherpacket_len;
+    
+        EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
+        EVP_EncryptUpdate(ctx, cipherpacket, &len, query, BUFFER_SIZE);
+        cipherpacket_len = len;
+        EVP_EncryptFinal_ex(ctx, cipherpacket + len, &len);
+        cipherpacket_len += len;
+
+        EVP_CIPHER_CTX_free(ctx);
+        return cipherpacket_len;
+}
+
+int aes_decrypt(const unsigned char *cipherpacket, unsigned char *aes_key, unsigned char *aes_iv, int cipherpacket_len) {
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    int len, query_len;
+    
+    EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
+    EVP_DecryptUpdate(ctx, query &len, cipherpacket, cipherpacket_len);
+    query_len = len;
+    EVP_DecryptFinal_ex(ctx, query + len, &len);
+    query_len += len;
+
+    EVP_CIPHER_CTX_free(ctx);
+    return query_len;
+}
+
+int send_packet(Communicator* comm, Keys *keys, const char* query) {
     char* destination_ip = inet_ntoa(comm->destination_addr.sin_addr);
     int destination_port = ntohs(comm->destination_addr.sin_port);
+
+    unsigned char cipherpacket[BUFFER_SIZE];
 
     char packet[BUFFER_SIZE];
     construct_packet(comm, query, packet, BUFFER_SIZE);
 
-    int result = sendto(comm->sockfd, packet, strlen(packet), 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
+    int cipherpacket_len=aes_encrypt(packet, keys->aes_key, keys->iv_key, cipherpacket)
+
+    int result = sendto(comm->sockfd, cipherpacket, cipherpacket_len, 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
     if (result < 0) {
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
             perror("Send failed");
@@ -161,7 +220,7 @@ void log_message(const char* query, const struct sockaddr_in* sender_addr, const
     }
 }
 
-char* receive_packet(Communicator* comm) {
+char* receive_packet(Communicator* comm, Keys* keys) {
     struct sockaddr_in sender_addr;
     socklen_t addr_len = sizeof(sender_addr);
 
@@ -174,6 +233,7 @@ char* receive_packet(Communicator* comm) {
         return NULL;
     }
     
+    int cipherpacket_len=aes_decrypt(comm->recv_buffer, keys->aes_key, keys->aes_iv, recv_len);
     comm->recv_buffer[recv_len] = '\0';
     
     char packet_id[ID_SIZE];

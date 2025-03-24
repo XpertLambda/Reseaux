@@ -10,6 +10,8 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <time.h>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
 #include <sys/socket.h>
 
 #define TRUE 1
@@ -34,6 +36,11 @@
 
 #define LOCALHOST_IP "127.0.0.1"
 #define BROADCAST_IP "255.255.255.255"
+//#define BROADCAST_IP "172.20.10.5"
+
+#define KEY_SIZE 32
+#define IV_SIZE 16 //initialising vector
+
 
 typedef struct {
     int sockfd;
@@ -42,6 +49,11 @@ typedef struct {
     char recv_buffer[BUFFER_SIZE];
     char instance_id[ID_SIZE];
 } Communicator;
+
+typedef struct {
+    unsigned_char *aes_key;
+    unsigned_char *aes_iv;
+}Keys;
 
 void generate_instance_id(Communicator* comm);
 Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr);
