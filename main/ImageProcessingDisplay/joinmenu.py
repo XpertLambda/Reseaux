@@ -95,7 +95,6 @@ class JoinMenu:
             (self.back_button.x + 35, self.back_button.y + 40)
         ])
 
-
     def handle_click(self, pos, game_state):
         global SELECTED_IP
 

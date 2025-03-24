@@ -46,7 +46,8 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
-    int recieve_buff = RCVBUF_SIZE;
+    int recieve_buff = RCVBUF_SIZE; 
+    //increase buf size
     if (setsockopt(comm->sockfd, SOL_SOCKET, SO_RCVBUF, &recieve_buff, sizeof(recieve_buff)) < 0) {
         perror("setsockopt SO_RCVBUF failed");
         close(comm->sockfd);
