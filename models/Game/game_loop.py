@@ -22,13 +22,14 @@ class GameLoop:
 
         self.state = GameState()
         self.state.set_screen_size(self.screen.get_width(), self.screen.get_height())
-        self.startmenu = StartMenu(self.screen)
+        self.startmenu = StartMenu(self.screen, self.state)
         self.pausemenu = PauseMenu(self.screen)
-        self.createmenu = CreateMenu(self.screen)
-        self.joinmenu = JoinMenu(self.screen)
+        self.createmenu = CreateMenu(self.screen, self.state)
+        self.joinmenu = JoinMenu(self.screen, self.state)
         self.endmenu = EndMenu(self.screen)
         self.ui = UserInterface(self.screen)
         self.action_in_progress = False
+    
         
 
     
@@ -58,13 +59,27 @@ class GameLoop:
                     self.state.states = PLAY
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            selected_ip = self.joinmenu.handle_click(event.pos, self.state)
 
-            print("Mouse button down")
-            self.joinmenu.handle_click(event.pos, self.state)
+            if selected_ip is not None:
+                print(f"[JOINMENU] IP sélectionnée : {selected_ip}")
+                if selected_ip in ALL_IP:
+                    port, taille_x, taille_y, mode_idx, style_idx, joueurs = ALL_IP[selected_ip]
+
+                    # Initialisation des paramètres dans le GameState
+                    self.state.set_map_size(taille_x, taille_y)
+                    self.state.set_map_type(style_map[style_idx])
+                    self.state.set_difficulty_mode(mode_idx)
+                    self.state.set_players(joueurs)
+                    self.state.set_display_mode(ISO2D)  # ou TERMINAL selon ton besoin
+                    self.state.start_game()
+                    self.state.states = PLAY
+
+                    print(f"[JOIN] map: {taille_x}x{taille_y}, mode: {mode[mode_idx]}, style: {style_map[style_idx]}, joueurs: {joueurs}")
 
         elif event.type == pygame.MOUSEWHEEL:
-            # Événement molette transmis à JoinMenu
             self.joinmenu.scroll(event.y)
+
 
 
 

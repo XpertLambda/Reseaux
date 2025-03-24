@@ -31,6 +31,8 @@ class GameState:
         self.camera = Camera()
         self.terminal_camera = TerminalCamera()
         self.music_state = ""
+        self.volume = 0.5  # Volume par défaut
+
 
     def change_music(self, state):
         
