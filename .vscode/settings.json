@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./garbage/Jonas/udp_tcp_test/send"
+    ]
+}

@@ -22,7 +22,6 @@ MINIMAP_HEIGHT = MINIMAP_WIDTH
 #colors
 FPS = 60
 
-
 MEDIEVALSHARP = "MedievalSharp-Regular.ttf"
 
 

@@ -10,10 +10,10 @@
 #include <unistd.h>
 
 #define ACTION_LEN 2048
-#define IP "255.255.255.255"
+#define BROADCAST_IP "255.255.255.255" // Adresse de broadcast pour tout le réseau
 #define PORT 50003
 
-void send_action(char * action,int sockfd);
-void recv_action(int sockfd);
-#endif
+void send_action(char * action, int SOCKFD);
+void recv_action(int SOCKFD);
 
+#endif
