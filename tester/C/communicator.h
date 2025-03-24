@@ -59,12 +59,12 @@ void generate_instance_id(Communicator* comm);
 Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr);
 Keys* init_keys();
 int aes_encrypt (const char* packet, unsigned char *aes_key, unsigned char *aes_iv, const unsigned char *cipherpacket);
-int aes_decrypt(const unsigned char *cipherpacket, unsigned char *aes_key, unsigned char *aes_iv, int cipherpacket_len, const char *packet)
+int aes_decrypt(const unsigned char *cipherpacket, unsigned char *aes_key, unsigned char *aes_iv, int cipherpacket_len, const char *packet);
 void construct_packet(Communicator* comm, const char* query, char* packet, size_t packet_size);
-int send_packet(Communicator* comm, const char* message);
+int send_packet(Communicator* comm, Keys* keys, const char* message);
 char* process_packet(char* packet, char* packet_id, size_t id_size);
 void log_message(const char* message, const struct sockaddr_in* sender_addr, const char* packet_id);
-char* receive_packet(Communicator* comm);
+char* receive_packet(Communicator* comm, Keys *keys);
 void cleanup_communicator(Communicator* comm);
 
 #endif // COMMUNICATOR_H

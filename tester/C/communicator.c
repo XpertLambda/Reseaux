@@ -120,13 +120,13 @@ void construct_packet(Communicator* comm, const char* query, char* packet, size_
 
 Keys* init_keys(){
     Keys *keys=(Keys*)malloc(sizeof(Keys));
-    keys->aes_key=(unsigned char)malloc(KEY_SIZE * sizeof(unsigned char));
+    keys->aes_key=(unsigned char *)malloc(KEY_SIZE * sizeof(unsigned char));
         if (!keys->aes_key) {
         perror("key allocation failed");
         return NULL;
     }
 
-    keys->aes_iv=(unsigned char)malloc(IV_SIZE * sizeof(unsigned char));
+    keys->aes_iv=(unsigned char *)malloc(IV_SIZE * sizeof(unsigned char));
         if (!keys->aes_iv) {
         perror("iv allocation failed");
         return NULL;
@@ -135,11 +135,11 @@ Keys* init_keys(){
 
     if(!RAND_bytes(keys->aes_key, sizeof(keys->aes_key))){
         perror("failed to generate key");
-        return;
+        return NULL;
     }; //for generating a random key
     if(!RAND_bytes(keys->aes_iv, sizeof(keys->aes_iv))){
         perror("failed to generate iv");
-        return;
+        return NULL;
     }; //for generating a random iv
 
     return keys;
@@ -150,7 +150,7 @@ int aes_encrypt (const char* packet, unsigned char *aes_key, unsigned char *aes_
         int len, cipherpacket_len;
     
         EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
-        EVP_EncryptUpdate(ctx, cipherpacket, &len, query, BUFFER_SIZE);
+        EVP_EncryptUpdate(ctx, cipherpacket, &len, packet, BUFFER_SIZE);
         cipherpacket_len = len;
         EVP_EncryptFinal_ex(ctx, cipherpacket + len, &len);
         cipherpacket_len += len;
@@ -170,7 +170,7 @@ int aes_decrypt(const unsigned char *cipherpacket, unsigned char *aes_key, unsig
     packet_len += len;
 
     EVP_CIPHER_CTX_free(ctx);
-    return query_len;
+    return packet_len;
 }
 
 int send_packet(Communicator* comm, Keys *keys, const char* query) {

@@ -9,7 +9,7 @@ DEPS = communicator.h
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ -lssl -lcrypto
 
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
