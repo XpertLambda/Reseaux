@@ -77,7 +77,7 @@ int main() {
             double internal_avg_size = internal_total_receive == 0 ? 0.0 : internal_total_size / internal_total_receive;
             double external_avg_size = external_total_receive == 0 ? 0.0 : external_total_size / external_total_receive;
 
-            printf("[Packet Loss] External -> Sent: %d, Received: %d, Lost: %d (%.2f%%), Avg Size: %.2f KB\n", external_total_sent, external_total_receive, external_packet_lost, external_loss_percentage, external_avg_size);
+            //printf("[Packet Loss] External -> Sent: %d, Received: %d, Lost: %d (%.2f%%), Avg Size: %.2f KB\n", external_total_sent, external_total_receive, external_packet_lost, external_loss_percentage, external_avg_size);
 
             last_time = current_time;
         }
