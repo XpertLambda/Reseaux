@@ -51,8 +51,8 @@ typedef struct {
 } Communicator;
 
 typedef struct {
-    unsigned_char *aes_key;
-    unsigned_char *aes_iv;
+    unsigned char *aes_key;
+    unsigned char *aes_iv;
 }Keys;
 
 void generate_instance_id(Communicator* comm);

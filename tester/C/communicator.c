@@ -159,15 +159,15 @@ int aes_encrypt (const char* packet, unsigned char *aes_key, unsigned char *aes_
         return cipherpacket_len;
 }
 
-int aes_decrypt(const unsigned char *cipherpacket, unsigned char *aes_key, unsigned char *aes_iv, int cipherpacket_len) {
+int aes_decrypt(const unsigned char *cipherpacket, unsigned char *aes_key, unsigned char *aes_iv, int cipherpacket_len, const char *packet) {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    int len, query_len;
+    int len, packet_len;
     
     EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
-    EVP_DecryptUpdate(ctx, query &len, cipherpacket, cipherpacket_len);
-    query_len = len;
-    EVP_DecryptFinal_ex(ctx, query + len, &len);
-    query_len += len;
+    EVP_DecryptUpdate(ctx, packet, &len, cipherpacket, cipherpacket_len);
+    packet_len = len;
+    EVP_DecryptFinal_ex(ctx, packet + len, &len);
+    packet_len += len;
 
     EVP_CIPHER_CTX_free(ctx);
     return query_len;
@@ -182,7 +182,7 @@ int send_packet(Communicator* comm, Keys *keys, const char* query) {
     char packet[BUFFER_SIZE];
     construct_packet(comm, query, packet, BUFFER_SIZE);
 
-    int cipherpacket_len=aes_encrypt(packet, keys->aes_key, keys->iv_key, cipherpacket)
+    int cipherpacket_len = aes_encrypt(packet, keys->aes_key, keys->aes_key, cipherpacket);
 
     int result = sendto(comm->sockfd, cipherpacket, cipherpacket_len, 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
     if (result < 0) {
@@ -191,7 +191,7 @@ int send_packet(Communicator* comm, Keys *keys, const char* query) {
         }
         return -1;
     }
-    //printf("[+] Sent: %s to %s:%d \n", packet, destination_ip, destination_port);
+    printf("[+] Sent: %s to %s:%d \n", cipherpacket, destination_ip, destination_port);
     return result;
 }
 
@@ -233,8 +233,11 @@ char* receive_packet(Communicator* comm, Keys* keys) {
         return NULL;
     }
     
-    int cipherpacket_len=aes_decrypt(comm->recv_buffer, keys->aes_key, keys->aes_iv, recv_len);
+    int cipherpacket_len=aes_decrypt(comm->recv_buffer, keys->aes_key, keys->aes_iv, recv_len, comm->recv_buffer);
     comm->recv_buffer[recv_len] = '\0';
+
+    printf("[+] recieved: %s\n", comm->recv_buffer);
+
     
     char packet_id[ID_SIZE];
     char* query = process_packet(comm->recv_buffer, packet_id, ID_SIZE);
