@@ -46,6 +46,13 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
         return NULL;
     }
 
+     // Set TTL value
+    int ttl_value=TTL_VALUE;
+    if (setsockopt(comm->sockfd, IPPROTO_IP, IP_TTL, &ttl_value, sizeof(ttl_value)) < 0) {
+        perror("Failed to set IP_TTL");
+        exit(EXIT_FAILURE);
+    }
+
     int recieve_buff = RCVBUF_SIZE;
     if (setsockopt(comm->sockfd, SOL_SOCKET, SO_RCVBUF, &recieve_buff, sizeof(recieve_buff)) < 0) {
         perror("setsockopt SO_RCVBUF failed");
