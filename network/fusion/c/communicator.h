@@ -11,6 +11,10 @@
 #include <netinet/in.h>
 #include <time.h>
 #include <sys/socket.h>
+#include <openssl/aes.h>
+#include <openssl/evp.h>
+#include <openssl/rand.h>
+
 
 #define TRUE 1
 #define FALSE 0
@@ -27,6 +31,10 @@
 #define LOCALHOST_IP "127.0.0.1"
 #define BROADCAST_IP "255.255.255.255"
 
+#define KEY_SIZE 32
+#define IV_SIZE 32
+
+
 typedef struct {
     int sockfd;                   // Socket file descriptor
     struct sockaddr_in destination_addr;  // Address to send to
@@ -39,5 +47,8 @@ Communicator* init_communicator(int listener_port, int destination_port, const c
 int send_query(Communicator* comm, const char* query);
 char* receive_query(Communicator* comm);
 void cleanup_communicator(Communicator* comm);
+int encrypt_message(const unsigned char *plaintext, int plaintext_len, unsigned char *key, unsigned char *iv, unsigned char *ciphertext);
+int decrypt_message(const unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext);
+void init_key_and_iv(unsigned char *key, unsigned char *iv);
 
 #endif // COMMUNICATOR_H

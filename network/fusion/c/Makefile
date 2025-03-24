@@ -1,15 +1,16 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -O2
+CFLAGS = -Wall -Wextra -O2 $(shell pkg-config --cflags openssl)
+LDLIBS = $(shell pkg-config --libs openssl)
 TARGET = communicator
 
-SRCS = main.c communicator.c
+SRCS = communicator.c main.c
 OBJS = $(SRCS:.c=.o)
 DEPS = communicator.h
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LDLIBS)
 
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
