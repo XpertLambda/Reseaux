@@ -34,6 +34,7 @@ int main() {
         char* external_query = receive_packet(external_communicator);
         if (external_query != NULL) {
             aes_decrypt(external_query, strlen(external_query), keys->aes_key, keys->aes_iv);
+            printf("decr    %s\n"; external_query);
         }
         // Count received packets and track size in KB
         if (internal_query != NULL) {
