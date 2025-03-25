@@ -56,13 +56,13 @@ int main() {
 
         // Process the external query if it exists
         if (external_query != NULL) {
-            int encrypt_len=aes_encrypt (external_query, keys->aes_key, keys->aes_iv);
             send_packet(python_communicator, external_query);          
             internal_total_sent++;
         }
 
         // Process the internal query if it exists
         if (internal_query != NULL) {
+            int encrypt_len=aes_encrypt (external_query, keys->aes_key, keys->aes_iv);
             send_packet(external_communicator, internal_query);
             external_total_sent++;
         }
