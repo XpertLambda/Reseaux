@@ -232,10 +232,11 @@ char* receive_packet(Communicator* comm, Keys* keys) {
         }
         return NULL;
     }
+
     char packet[BUFFER_SIZE];
     
     int cipherpacket_len=aes_decrypt(comm->recv_buffer, keys->aes_key, keys->aes_iv, recv_len, packet);
-    comm->recv_buffer[recv_len] = '\0';
+    packet[recv_len] = '\0';
 
     
     char packet_id[ID_SIZE];
@@ -247,7 +248,7 @@ char* receive_packet(Communicator* comm, Keys* keys) {
         memmove(comm->recv_buffer, query, content_len + 1);
     }
 
-    log_message(comm->recv_buffer, &sender_addr, packet_id);
+    log_message(packet, &sender_addr, packet_id);
     return comm->recv_buffer;
 }
 
