@@ -173,21 +173,25 @@ int aes_decrypt(const unsigned char *cipherpacket, unsigned char *aes_key, unsig
     return packet_len;
 }
 
-int send_packet(Communicator* comm, const char* query) {
+int send_packet(Communicator* comm, Keys *keys, const char* query) {
     char* destination_ip = inet_ntoa(comm->destination_addr.sin_addr);
     int destination_port = ntohs(comm->destination_addr.sin_port);
+
+    unsigned char cipherpacket[BUFFER_SIZE];
 
     char packet[BUFFER_SIZE];
     construct_packet(comm, query, packet, BUFFER_SIZE);
 
-    int result = sendto(comm->sockfd, packet, strlen(packet), 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
+    int cipherpacket_len = aes_encrypt(packet, keys->aes_key, keys->aes_key, cipherpacket);
+
+    int result = sendto(comm->sockfd, cipherpacket, cipherpacket_len, 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
     if (result < 0) {
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
             perror("Send failed");
         }
         return -1;
     }
-    printf("[+] Sent: %s to %s:%d \n", packet, destination_ip, destination_port);
+    printf("[+] Sent: %s to %s:%d \n", cipherpacket, destination_ip, destination_port);
     return result;
 }
 
@@ -216,7 +220,7 @@ void log_message(const char* query, const struct sockaddr_in* sender_addr, const
     }
 }
 
-char* receive_packet(Communicator* comm) {
+char* receive_packet(Communicator* comm, Keys* keys) {
     struct sockaddr_in sender_addr;
     socklen_t addr_len = sizeof(sender_addr);
 
@@ -228,9 +232,11 @@ char* receive_packet(Communicator* comm) {
         }
         return NULL;
     }
+    char packet[BUFFER_SIZE];
     
+    int cipherpacket_len=aes_decrypt(comm->recv_buffer, keys->aes_key, keys->aes_iv, recv_len, packet);
     comm->recv_buffer[recv_len] = '\0';
-    printf
+
     
     char packet_id[ID_SIZE];
     char* query = process_packet(comm->recv_buffer, packet_id, ID_SIZE);

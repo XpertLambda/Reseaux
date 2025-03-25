@@ -31,10 +31,7 @@ int main() {
     while (1) {
         // Receive queries from both communicators
         char* internal_query = receive_packet(python_communicator, keys);
-        int internal_query_len=aes_decrypt(internal_query, key->aes_key, key->aes_iv, sizeof(internal_query),internal_query)
         char* external_query = receive_packet(external_communicator, keys);
-        int external_query_len=aes_decrypt(internal_query, key->aes_key, key->aes_iv, sizeof(internal_query),internal_query)
-
 
         // Count received packets and track size in KB
         if (internal_query != NULL) {
@@ -58,14 +55,12 @@ int main() {
 
         // Process the external query if it exists
         if (external_query != NULL) {
-            int len = aes_encrypt(external_query, keys->aes_key, keys->aes_key, internal_query);
             send_packet(python_communicator, keys, external_query);
             internal_total_sent++;
         }
 
         // Process the internal query if it exists
         if (internal_query != NULL) {
-            int len2 = aes_encrypt(internal_query, keys->aes_key, keys->aes_key, internal_query);
             send_packet(external_communicator, keys, internal_query);
             external_total_sent++;
         }
