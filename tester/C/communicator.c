@@ -240,16 +240,16 @@ char* receive_packet(Communicator* comm, Keys* keys) {
 
     
     char packet_id[ID_SIZE];
-    char* query = process_packet(comm->recv_buffer, packet_id, ID_SIZE);
+    char* query = process_packet(packet, packet_id, ID_SIZE);
     if (strcmp(packet_id, comm->instance_id) == 0) return NULL;
 
-    if (query != comm->recv_buffer) {
+    if (query != packet) {
         size_t content_len = strlen(query);
-        memmove(comm->recv_buffer, query, content_len + 1);
+        memmove(packet, query, content_len + 1);
     }
 
     log_message(packet, &sender_addr, packet_id);
-    return comm->recv_buffer;
+    return packet;
 }
 
 void cleanup_communicator(Communicator* comm) {
