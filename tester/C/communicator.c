@@ -145,21 +145,21 @@ Keys* init_keys(){
     return keys;
 }
 
-int aes_encrypt (const char* packet, unsigned char *aes_key, unsigned char *aes_iv){
+int aes_encrypt (char* packet, int packet_len, unsigned char *aes_key, unsigned char *aes_iv){
         EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-        int len, packet_len;
+        int len, cipherpacket_len;
     
         EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
-        EVP_EncryptUpdate(ctx, packet, &len, packet, BUFFER_SIZE);
-        packet_len = len;
+        EVP_EncryptUpdate(ctx, packet, &len, packet, packet_len);
+        cipherpacket_len = len;
         EVP_EncryptFinal_ex(ctx, packet + len, &len);
-        packet_len += len;
+        cipherpacket_len += len;
 
         EVP_CIPHER_CTX_free(ctx);
-        return packet_len;
+        return cipherpacket_len;
 }
 
-int aes_decrypt( const char *packet, int cipherpacket_len, unsigned char *aes_key, unsigned char *aes_iv) {
+int aes_decrypt(char *packet, int cipherpacket_len, unsigned char *aes_key, unsigned char *aes_iv) {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     int len, packet_len;
     
@@ -170,7 +170,7 @@ int aes_decrypt( const char *packet, int cipherpacket_len, unsigned char *aes_ke
     packet_len += len;
 
     EVP_CIPHER_CTX_free(ctx);
-    packet[packet_len];
+    packet[packet_len]='\0';
     return packet_len;
 }
 

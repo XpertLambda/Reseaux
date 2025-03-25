@@ -58,8 +58,8 @@ typedef struct {
 void generate_instance_id(Communicator* comm);
 Communicator* init_communicator(int listener_port, int destination_port, const char* destination_addr);
 Keys* init_keys();
-int aes_encrypt (const char* packet, unsigned char *aes_key, unsigned char *aes_iv);
-int aes_decrypt( const char *packet, int cipherpacket_len, unsigned char *aes_key, unsigned char *aes_iv);
+int aes_encrypt (char* packet, int packet_len, unsigned char *aes_key, unsigned char *aes_iv);
+int aes_decrypt(char *packet, int cipherpacket_len, unsigned char *aes_key, unsigned char *aes_iv);
 void construct_packet(Communicator* comm, const char* query, char* packet, size_t packet_size);
 int send_packet(Communicator* comm, const char* message);
 char* process_packet(char* packet, char* packet_id, size_t id_size);
