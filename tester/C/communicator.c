@@ -145,33 +145,65 @@ Keys* init_keys(){
     return keys;
 }
 
-int aes_encrypt (char* packet, int packet_len, unsigned char *aes_key, unsigned char *aes_iv){
-        EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-        int len, cipherpacket_len;
-    
-        EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
-        EVP_EncryptUpdate(ctx, packet, &len, packet, packet_len);
-        cipherpacket_len = len;
-        EVP_EncryptFinal_ex(ctx, packet + len, &len);
-        cipherpacket_len += len;
+void aes_encrypt(char* packet, int packet_len, unsigned char *aes_key, unsigned char *aes_iv) {
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+    unsigned char *ciphertext = malloc(packet_len + EVP_MAX_BLOCK_LENGTH);
+    int len = 0, ciphertext_len = 0;
 
+    if(EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, aes_iv)!=1) {
+        free(ciphertext);
         EVP_CIPHER_CTX_free(ctx);
-        return cipherpacket_len;
+        return;
+    }
+
+    if(EVP_EncryptUpdate(ctx, ciphertext, &len, (unsigned char*)packet, packet_len)!=1) {
+        free(ciphertext);
+        EVP_CIPHER_CTX_free(ctx);
+        return;
+    }
+    ciphertext_len = len;
+
+    if(EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)!=1) {
+        free(ciphertext);
+        EVP_CIPHER_CTX_free(ctx);
+        return;
+    }
+    ciphertext_len += len;
+    memcpy(packet, ciphertext, ciphertext_len);
+    free(ciphertext);
+    EVP_CIPHER_CTX_free(ctx);
 }
 
-int aes_decrypt(char *packet, int cipherpacket_len, unsigned char *aes_key, unsigned char *aes_iv) {
+void aes_decrypt(char *packet, int cipherpacket_len, unsigned char *aes_key, unsigned char *aes_iv) {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-    int len, packet_len;
-    
-    EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
-    EVP_DecryptUpdate(ctx, packet, &len, packet, cipherpacket_len);
-    packet_len = len;
-    EVP_DecryptFinal_ex(ctx, packet + len, &len);
-    packet_len += len;
+    unsigned char *plaintext = malloc(cipherpacket_len + EVP_MAX_BLOCK_LENGTH);
+    int len = 0, plaintext_len = 0;
 
+    if(EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, aes_iv)!=1) {
+        free(plaintext);
+        EVP_CIPHER_CTX_free(ctx);
+        return;
+    }
+
+    if(EVP_DecryptUpdate(ctx, plaintext, &len, (unsigned char*)packet, cipherpacket_len)!=1) {
+        free(plaintext);
+        EVP_CIPHER_CTX_free(ctx);
+        return;
+    }
+    plaintext_len = len;
+
+    if(EVP_DecryptFinal_ex(ctx, plaintext + len, &len)!=1) {
+        free(plaintext);
+        EVP_CIPHER_CTX_free(ctx);
+        return;
+    }
+    plaintext_len += len;
+
+    plaintext[plaintext_len] = '\0';
+    memcpy(packet, plaintext, plaintext_len + 1);
+    free(plaintext);
     EVP_CIPHER_CTX_free(ctx);
-    packet[packet_len]='\0';
-    return packet_len;
+
 }
 
 int send_packet(Communicator* comm, const char* query) {
