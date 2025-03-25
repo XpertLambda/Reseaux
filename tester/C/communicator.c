@@ -243,13 +243,13 @@ char* receive_packet(Communicator* comm, Keys* keys) {
     char* query = process_packet(packet, packet_id, ID_SIZE);
     if (strcmp(packet_id, comm->instance_id) == 0) return NULL;
 
-    if (query != packet) {
+    if (query != comm->recv_buffer) {
         size_t content_len = strlen(query);
-        memmove(packet, query, content_len + 1);
+        memmove(comm->recv_buffer, query, content_len + 1);
     }
 
     log_message(packet, &sender_addr, packet_id);
-    return packet;
+    return comm->recv_buffer;
 }
 
 void cleanup_communicator(Communicator* comm) {
