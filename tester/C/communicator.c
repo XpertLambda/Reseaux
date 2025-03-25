@@ -145,26 +145,26 @@ Keys* init_keys(){
     return keys;
 }
 
-int aes_encrypt (const char* packet, unsigned char *aes_key, unsigned char *aes_iv, const unsigned char *cipherpacket){
+int aes_encrypt (const char* packet, unsigned char *aes_key, unsigned char *aes_iv){
         EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-        int len, cipherpacket_len;
+        int len, packet_len;
     
         EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
-        EVP_EncryptUpdate(ctx, cipherpacket, &len, packet, BUFFER_SIZE);
-        cipherpacket_len = len;
-        EVP_EncryptFinal_ex(ctx, cipherpacket + len, &len);
-        cipherpacket_len += len;
+        EVP_EncryptUpdate(ctx, packet, &len, packet, BUFFER_SIZE);
+        packet_len = len;
+        EVP_EncryptFinal_ex(ctx, packet + len, &len);
+        packet_len += len;
 
         EVP_CIPHER_CTX_free(ctx);
-        return cipherpacket_len;
+        return packet_len;
 }
 
-int aes_decrypt(const unsigned char *cipherpacket, unsigned char *aes_key, unsigned char *aes_iv, int cipherpacket_len, const char *packet) {
+int aes_decrypt( const char *packet, int cipherpacket_len, unsigned char *aes_key, unsigned char *aes_iv) {
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     int len, packet_len;
     
     EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, aes_key, aes_iv);
-    EVP_DecryptUpdate(ctx, packet, &len, cipherpacket, cipherpacket_len);
+    EVP_DecryptUpdate(ctx, packet, &len, packet, cipherpacket_len);
     packet_len = len;
     EVP_DecryptFinal_ex(ctx, packet + len, &len);
     packet_len += len;
@@ -173,25 +173,21 @@ int aes_decrypt(const unsigned char *cipherpacket, unsigned char *aes_key, unsig
     return packet_len;
 }
 
-int send_packet(Communicator* comm, Keys *keys, const char* query) {
+int send_packet(Communicator* comm, const char* query) {
     char* destination_ip = inet_ntoa(comm->destination_addr.sin_addr);
     int destination_port = ntohs(comm->destination_addr.sin_port);
-
-    unsigned char cipherpacket[BUFFER_SIZE];
 
     char packet[BUFFER_SIZE];
     construct_packet(comm, query, packet, BUFFER_SIZE);
 
-    int cipherpacket_len = aes_encrypt(packet, keys->aes_key, keys->aes_key, cipherpacket);
-
-    int result = sendto(comm->sockfd, cipherpacket, cipherpacket_len, 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
+    int result = sendto(comm->sockfd, packet, strlen(packet), 0, (struct sockaddr*)&comm->destination_addr, sizeof(comm->destination_addr));
     if (result < 0) {
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
             perror("Send failed");
         }
         return -1;
     }
-    printf("[+] Sent: %s to %s:%d \n", cipherpacket, destination_ip, destination_port);
+    printf("[+] Sent: %s to %s:%d \n", packet, destination_ip, destination_port);
     return result;
 }
 
@@ -220,7 +216,7 @@ void log_message(const char* query, const struct sockaddr_in* sender_addr, const
     }
 }
 
-char* receive_packet(Communicator* comm, Keys* keys) {
+char* receive_packet(Communicator* comm) {
     struct sockaddr_in sender_addr;
     socklen_t addr_len = sizeof(sender_addr);
 
@@ -232,15 +228,11 @@ char* receive_packet(Communicator* comm, Keys* keys) {
         }
         return NULL;
     }
-
-    char packet[BUFFER_SIZE];
     
-    int cipherpacket_len=aes_decrypt(comm->recv_buffer, keys->aes_key, keys->aes_iv, recv_len, packet);
-    packet[recv_len] = '\0';
-
+    comm->recv_buffer[recv_len] = '\0';
     
     char packet_id[ID_SIZE];
-    char* query = process_packet(packet, packet_id, ID_SIZE);
+    char* query = process_packet(comm->recv_buffer, packet_id, ID_SIZE);
     if (strcmp(packet_id, comm->instance_id) == 0) return NULL;
 
     if (query != comm->recv_buffer) {
@@ -248,7 +240,7 @@ char* receive_packet(Communicator* comm, Keys* keys) {
         memmove(comm->recv_buffer, query, content_len + 1);
     }
 
-    log_message(packet, &sender_addr, packet_id);
+    log_message(comm->recv_buffer, &sender_addr, packet_id);
     return comm->recv_buffer;
 }
 
