@@ -232,11 +232,12 @@ char* receive_packet(Communicator* comm, Keys* keys) {
         }
         return NULL;
     }
+    char packet[BUFFER_SIZE];
     
-    int cipherpacket_len=aes_decrypt(comm->recv_buffer, keys->aes_key, keys->aes_iv, recv_len, comm->recv_buffer);
+    int cipherpacket_len=aes_decrypt(comm->recv_buffer, keys->aes_key, keys->aes_iv, recv_len, packet);
     comm->recv_buffer[recv_len] = '\0';
 
-    printf("[+] recieved: %s\n", comm->recv_buffer);
+    printf("[+] recieved: %s\n", packet);
 
     
     char packet_id[ID_SIZE];
