@@ -146,7 +146,7 @@ Keys* init_keys(){
 }
 
 void aes_encrypt(char* packet, int packet_len, unsigned char *aes_key, unsigned char *aes_iv) {
-    printf("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    printf("encrypt...\n");
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     unsigned char *ciphertext = malloc(packet_len + EVP_MAX_BLOCK_LENGTH);
     int len = 0, ciphertext_len = 0;
@@ -176,7 +176,7 @@ void aes_encrypt(char* packet, int packet_len, unsigned char *aes_key, unsigned 
 }
 
 void aes_decrypt(char *packet, int cipherpacket_len, unsigned char *aes_key, unsigned char *aes_iv) {
-    printf("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    printf("decypt...\n");
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     unsigned char *plaintext = malloc(cipherpacket_len + EVP_MAX_BLOCK_LENGTH);
     int len = 0, plaintext_len = 0;

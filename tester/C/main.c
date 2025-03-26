@@ -35,8 +35,8 @@ int main() {
         // Receive queries from both communicators
         internal_query = receive_packet(python_communicator);
         external_query = receive_packet(external_communicator);
-        if (internal_query != NULL) {
-            aes_decrypt(internal_query, strlen(internal_query), keys->aes_key, keys->aes_iv);
+        if (external_query != NULL) {
+            aes_decrypt(external_query, strlen(external_query), keys->aes_key, keys->aes_iv);
         };
 
         // Count received packets and track size in KB
